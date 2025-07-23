@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include "PN532Interface.h"
+#include "pn532_interface.h"
 
 // PN532 Commands
 #define PN532_COMMAND_DIAGNOSE              (0x00)
@@ -127,7 +128,7 @@
 class PN532
 {
 public:
-    PN532(PN532Interface &interface);
+    PN532(pn532_interface *interface);
 
     void begin(void);
 
@@ -203,7 +204,7 @@ private:
 
     uint8_t pn532_packetbuffer[64];
 
-    PN532Interface *_interface;
+    pn532_interface *_interface;
 };
 
 #endif
