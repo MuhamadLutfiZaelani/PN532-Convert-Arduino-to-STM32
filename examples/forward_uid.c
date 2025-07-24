@@ -20,8 +20,7 @@ void nfc_loop(void)
 {
     uint8_t uid[7];
     uint8_t uid_len;
-    if (pn532_read_passive_target_id(&nfc, PN532_MIFARE_ISO14443A,
-                                     uid, &uid_len, 1000)) {
+    if (pn532_read_passive_target_id(&nfc, PN532_MIFARE_ISO14443A, uid, &uid_len, 1000)) {
         HAL_UART_Transmit(&huart2, uid, uid_len, HAL_MAX_DELAY);
     }
 }
