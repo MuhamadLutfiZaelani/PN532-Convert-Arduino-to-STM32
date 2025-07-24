@@ -4,8 +4,7 @@
 
 extern uint32_t HAL_GetTick(void);
 
-static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data,
-                                       uint16_t len, uint16_t timeout);
+static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data, uint16_t len, uint16_t timeout);
 
 static int8_t pn532_uart_hal_readAckFrame(pn532_uart_hal *dev);
 
@@ -33,8 +32,7 @@ void pn532_uart_hal_wakeup(void *ctx)
     HAL_UART_Transmit(dev->huart, frame, sizeof(frame), HAL_MAX_DELAY);
 }
 
-static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data,
-                                       uint16_t len, uint16_t timeout)
+static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data, uint16_t len, uint16_t timeout)
 {
     uint16_t read = 0;
     uint32_t start = HAL_GetTick();
@@ -52,8 +50,7 @@ static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data,
     return HAL_OK;
 }
 
-int8_t pn532_uart_hal_write_command(void *ctx, const uint8_t *header, uint8_t hlen,
-                                    const uint8_t *body, uint8_t blen)
+int8_t pn532_uart_hal_write_command(void *ctx, const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
 {
     pn532_uart_hal *dev = (pn532_uart_hal *)ctx;
 
