@@ -1,6 +1,6 @@
 # PN532 STM32 HAL Driver
 
-This repository contains a small C implementation of the PN532 NFC controller driver adapted for STM32 microcontrollers.  The code is derived from the Arduino library but exposes a C API so it can be used in bare-metal or STM32Cube projects.  A thin C++ wrapper (`PN532.h`/`PN532.cpp`) is also provided for compatibility.
+This repository contains a small C implementation of the PN532 NFC controller driver adapted for STM32 microcontrollers.  The code is derived from the Arduino library but exposes a pure C API so it can be used in bare-metal or STM32Cube projects.
 
 The driver operates through a generic `pn532_interface`.  `pn532_uart_hal.c` implements this interface using STM32 HAL UART calls so the PN532 can be controlled over a hardware USART.
 
