@@ -1,5 +1,4 @@
 #include "pn532_uart_hal.h"
-#include "PN532Interface.h"
 #include "PN532_debug.h"
 #include <string.h>
 
