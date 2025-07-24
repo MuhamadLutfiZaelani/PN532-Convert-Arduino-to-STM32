@@ -11,7 +11,6 @@
 #include "PN532_debug.h"
 #include <string.h>
 
-#define HAL(func)   (_interface->func)
 
 PN532::PN532(pn532_interface *interface)
 {
@@ -25,8 +24,8 @@ PN532::PN532(pn532_interface *interface)
 /**************************************************************************/
 void PN532::begin()
 {
-    HAL(begin)(_interface->context);
-    HAL(wakeup)(_interface->context);
+    _interface->begin(_interface->context);
+    _interface->wakeup(_interface->context);
 }
 
 /**************************************************************************/
@@ -119,12 +118,12 @@ uint32_t PN532::getFirmwareVersion(void)
 
     pn532_packetbuffer[0] = PN532_COMMAND_GETFIRMWAREVERSION;
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 1)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 1)) {
         return 0;
     }
 
     // read data packet
-    int16_t status = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    int16_t status = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
     if (0 > status) {
         return 0;
     }
@@ -158,12 +157,12 @@ uint32_t PN532::readRegister(uint16_t reg)
     pn532_packetbuffer[1] = (reg >> 8) & 0xFF;
     pn532_packetbuffer[2] = reg & 0xFF;
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 3)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 3)) {
         return 0;
     }
 
     // read data packet
-    int16_t status = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    int16_t status = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
     if (0 > status) {
         return 0;
     }
@@ -193,12 +192,12 @@ uint32_t PN532::writeRegister(uint16_t reg, uint8_t val)
     pn532_packetbuffer[3] = val;
 
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 4)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 4)) {
         return 0;
     }
 
     // read data packet
-    int16_t status = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    int16_t status = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
     if (0 > status) {
         return 0;
     }
@@ -242,10 +241,10 @@ bool PN532::writeGPIO(uint8_t pinstate)
     DMSG("\n");
 
     // Send the WRITEGPIO command (0x0E)
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 3))
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 3))
         return 0;
 
-    return (0 < HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 < _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -267,10 +266,10 @@ uint8_t PN532::readGPIO(void)
     pn532_packetbuffer[0] = PN532_COMMAND_READGPIO;
 
     // Send the READGPIO command (0x0C)
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 1))
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 1))
         return 0x0;
 
-    HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
 
     /* READGPIO response without prefix and suffix should be in the following format:
 
@@ -304,10 +303,10 @@ bool PN532::SAMConfig(void)
 
     DMSG("SAMConfig\n");
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 4))
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 4))
         return false;
 
-    return (0 < HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 < _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -328,10 +327,10 @@ bool PN532::setPassiveActivationRetries(uint8_t maxRetries)
     pn532_packetbuffer[3] = 0x01; // MxRtyPSL (default = 0x01)
     pn532_packetbuffer[4] = maxRetries;
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 5))
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 5))
         return 0x0;  // no ACK
 
-    return (0 < HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 < _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -357,11 +356,11 @@ bool PN532::setRFField(uint8_t autoRFCA, uint8_t rFOnOff)
     pn532_packetbuffer[1] = 1;
     pn532_packetbuffer[2] = 0x00 | autoRFCA | rFOnOff;  
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 3)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 3)) {
         return 0x0;  // command failed
     }
 
-    return (0 < HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 < _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /***** ISO14443A Commands ******/
@@ -385,12 +384,12 @@ bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uid
     pn532_packetbuffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
     pn532_packetbuffer[2] = cardbaudrate;
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 3)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 3)) {
         return 0x0;  // command failed
     }
 
     // read data packet
-    if (HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout) < 0) {
+    if (_interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout) < 0) {
         return 0x0;
     }
 
@@ -498,11 +497,11 @@ uint8_t PN532::mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, ui
         pn532_packetbuffer[10 + i] = _uid[i];              /* 4 bytes card ID */
     }
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 10 + _uidLen))
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 10 + _uidLen))
         return 0;
 
     // Read the response packet
-    HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
 
     // Check if the response is valid and we are authenticated???
     // for an auth success it should be bytes 5-7: 0xD5 0x41 0x00
@@ -540,12 +539,12 @@ uint8_t PN532::mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data)
     pn532_packetbuffer[3] = blockNumber;            /* Block Number (0..63 for 1K, 0..255 for 4K) */
 
     /* Send the command */
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 4)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 4)) {
         return 0;
     }
 
     /* Read the response packet */
-    HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
 
     /* If byte 8 isn't 0x00 we probably have an error */
     if (pn532_packetbuffer[0] != 0x00) {
@@ -581,12 +580,12 @@ uint8_t PN532::mifareclassic_WriteDataBlock (uint8_t blockNumber, uint8_t *data)
     memcpy (pn532_packetbuffer + 4, data, 16);        /* Data Payload */
 
     /* Send the command */
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 20)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 20)) {
         return 0;
     }
 
     /* Read the response packet */
-    return (0 < HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 < _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -722,12 +721,12 @@ uint8_t PN532::mifareultralight_ReadPage (uint8_t page, uint8_t *buffer)
     pn532_packetbuffer[3] = page;                /* Page Number (0..63 in most cases) */
 
     /* Send the command */
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 4)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 4)) {
         return 0;
     }
 
     /* Read the response packet */
-    HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
 
     /* If byte 8 isn't 0x00 we probably have an error */
     if (pn532_packetbuffer[0] == 0x00) {
@@ -766,12 +765,12 @@ uint8_t PN532::mifareultralight_WritePage (uint8_t page, uint8_t *buffer)
     memcpy (pn532_packetbuffer + 4, buffer, 4);          /* Data Payload */
 
     /* Send the command */
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 8)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 8)) {
         return 0;
     }
 
     /* Read the response packet */
-    return (0 < HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 < _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -791,11 +790,11 @@ bool PN532::inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response,
     pn532_packetbuffer[0] = 0x40; // PN532_COMMAND_INDATAEXCHANGE;
     pn532_packetbuffer[1] = inListedTag;
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 2, send, sendLength)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 2, send, sendLength)) {
         return false;
     }
 
-    int16_t status = HAL(read_response)(_interface->context, response, *responseLength, 1000);
+    int16_t status = _interface->read_response(_interface->context, response, *responseLength, 1000);
     if (status < 0) {
         return false;
     }
@@ -834,11 +833,11 @@ bool PN532::inListPassiveTarget()
 
     DMSG("inList passive target\n");
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 3)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 3)) {
         return false;
     }
 
-    int16_t status = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 30000);
+    int16_t status = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 30000);
     if (status < 0) {
         return false;
     }
@@ -854,12 +853,12 @@ bool PN532::inListPassiveTarget()
 
 int8_t PN532::tgInitAsTarget(const uint8_t* command, const uint8_t len, const uint16_t timeout){
   
-  int8_t status = HAL(write_command)(_interface->context, command, len);
+  int8_t status = _interface->write_command(_interface->context, command, len);
     if (status < 0) {
         return -1;
     }
 
-    status = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout);
+    status = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout);
     if (status > 0) {
         return 1;
     } else if (PN532_TIMEOUT == status) {
@@ -896,11 +895,11 @@ int16_t PN532::tgGetData(uint8_t *buf, uint8_t len)
 {
     buf[0] = PN532_COMMAND_TGGETDATA;
 
-    if (HAL(write_command)(_interface->context, buf, 1)) {
+    if (_interface->write_command(_interface->context, buf, 1)) {
         return -1;
     }
 
-    int16_t status = HAL(read_response)(_interface->context, buf, len, 3000);
+    int16_t status = _interface->read_response(_interface->context, buf, len, 3000);
     if (0 >= status) {
         return status;
     }
@@ -929,7 +928,7 @@ bool PN532::tgSetData(const uint8_t *header, uint8_t hlen, const uint8_t *body, 
         }
 
         pn532_packetbuffer[0] = PN532_COMMAND_TGSETDATA;
-        if (HAL(write_command)(_interface->context, pn532_packetbuffer, 1, header, hlen)) {
+        if (_interface->write_command(_interface->context, pn532_packetbuffer, 1, header, hlen)) {
             return false;
         }
     } else {
@@ -938,12 +937,12 @@ bool PN532::tgSetData(const uint8_t *header, uint8_t hlen, const uint8_t *body, 
         }
         pn532_packetbuffer[0] = PN532_COMMAND_TGSETDATA;
 
-        if (HAL(write_command)(_interface->context, pn532_packetbuffer, hlen + 1, body, blen)) {
+        if (_interface->write_command(_interface->context, pn532_packetbuffer, hlen + 1, body, blen)) {
             return false;
         }
     }
 
-    if (0 > HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 3000)) {
+    if (0 > _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 3000)) {
         return false;
     }
 
@@ -959,12 +958,12 @@ int16_t PN532::inRelease(const uint8_t relevantTarget){
     pn532_packetbuffer[0] = PN532_COMMAND_INRELEASE;
     pn532_packetbuffer[1] = relevantTarget;
 
-    if (HAL(write_command)(_interface->context, pn532_packetbuffer, 2)) {
+    if (_interface->write_command(_interface->context, pn532_packetbuffer, 2)) {
         return 0;
     }
 
     // read data packet
-    return HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    return _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer));
 }
 
 
@@ -998,12 +997,12 @@ int8_t PN532::felica_Polling(uint16_t systemCode, uint8_t requestCode, uint8_t *
   pn532_packetbuffer[6] = requestCode;
   pn532_packetbuffer[7] = 0;
 
-  if (HAL(write_command)(_interface->context, pn532_packetbuffer, 8)) {
+  if (_interface->write_command(_interface->context, pn532_packetbuffer, 8)) {
     DMSG("Could not send Polling command\n");
     return -1;
   }
 
-  int16_t status = HAL(read_response)(_interface->context, pn532_packetbuffer, 22, timeout);
+  int16_t status = _interface->read_response(_interface->context, pn532_packetbuffer, 22, timeout);
   if (status < 0) {
     DMSG("Could not receive response\n");
     return -2;
@@ -1070,13 +1069,13 @@ int8_t PN532::felica_SendCommand (const uint8_t *command, uint8_t commandlength,
   pn532_packetbuffer[1] = inListedTag;
   pn532_packetbuffer[2] = commandlength + 1;
 
-  if (HAL(write_command)(_interface->context, pn532_packetbuffer, 3, command, commandlength)) {
+  if (_interface->write_command(_interface->context, pn532_packetbuffer, 3, command, commandlength)) {
     DMSG("Could not send FeliCa command\n");
     return -2;
   }
 
   // Wait card response
-  int16_t status = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 200);
+  int16_t status = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 200);
   if (status < 0) {
     DMSG("Could not receive response\n");
     return -3;
@@ -1387,13 +1386,13 @@ int8_t PN532::felica_Release()
   pn532_packetbuffer[1] = 0x00;   // All target
   DMSG("Release all FeliCa target\n");
 
-  if (HAL(write_command)(_interface->context, pn532_packetbuffer, 2)) {
+  if (_interface->write_command(_interface->context, pn532_packetbuffer, 2)) {
     DMSG("No ACK\n");
     return -1;  // no ACK
   }
 
   // Wait card response
-  int16_t frameLength = HAL(read_response)(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 1000);
+  int16_t frameLength = _interface->read_response(_interface->context, pn532_packetbuffer, sizeof(pn532_packetbuffer), 1000);
   if (frameLength < 0) {
     DMSG("Could not receive response\n");
     return -2;
