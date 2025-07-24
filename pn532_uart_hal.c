@@ -90,8 +90,7 @@ int8_t pn532_uart_hal_write_command(void *ctx, const uint8_t *header, uint8_t hl
     return pn532_uart_hal_readAckFrame(dev);
 }
 
-int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len,
-                                     uint16_t timeout)
+int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len, uint16_t timeout)
 {
     pn532_uart_hal *dev = (pn532_uart_hal *)ctx;
     uint8_t tmp[3];
