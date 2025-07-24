@@ -1,15 +1,18 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-//#define DEBUG
+//#define PN532_DEBUG
 
-#include "Arduino.h"
+#include <stdio.h>
 
-#ifdef DEBUG
-#define DMSG(args...)       Serial.print(args)
-#define DMSG_STR(str)       Serial.println(str)
-#define DMSG_HEX(num)       Serial.print(' '); Serial.print((num>>4)&0x0F, HEX); Serial.print(num&0x0F, HEX)
-#define DMSG_INT(num)       Serial.print(' '); Serial.print(num)
+#ifdef PN532_DEBUG
+#ifndef PN532_LOG
+#define PN532_LOG printf
+#endif
+#define DMSG(...)       PN532_LOG(__VA_ARGS__)
+#define DMSG_STR(str)   PN532_LOG("%s\n", str)
+#define DMSG_HEX(num)   PN532_LOG(" %02X", (uint8_t)(num))
+#define DMSG_INT(num)   PN532_LOG(" %d", (int)(num))
 #else
 #define DMSG(args...)
 #define DMSG_STR(str)

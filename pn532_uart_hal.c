@@ -3,6 +3,11 @@
 #include "PN532_debug.h"
 #include <string.h>
 
+extern uint32_t HAL_GetTick(void);
+
+static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data,
+                                       uint16_t len, uint16_t timeout);
+
 static int8_t pn532_uart_hal_readAckFrame(pn532_uart_hal *dev);
 
 void pn532_uart_hal_init(pn532_uart_hal *dev, UART_HandleTypeDef *huart)
@@ -27,6 +32,25 @@ void pn532_uart_hal_wakeup(void *ctx)
     pn532_uart_hal *dev = (pn532_uart_hal *)ctx;
     uint8_t frame[] = {0x55, 0x55, 0x00, 0x00, 0x00};
     HAL_UART_Transmit(dev->huart, frame, sizeof(frame), HAL_MAX_DELAY);
+}
+
+static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data,
+                                       uint16_t len, uint16_t timeout)
+{
+    uint16_t read = 0;
+    uint32_t start = HAL_GetTick();
+
+    while (read < len) {
+        if (HAL_UART_Receive(dev->huart, &data[read], 1, 1) == HAL_OK) {
+            read++;
+        }
+
+        if (timeout && (HAL_GetTick() - start >= timeout)) {
+            return HAL_TIMEOUT;
+        }
+    }
+
+    return HAL_OK;
 }
 
 int8_t pn532_uart_hal_write_command(void *ctx, const uint8_t *header, uint8_t hlen,
@@ -76,7 +100,7 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len,
     pn532_uart_hal *dev = (pn532_uart_hal *)ctx;
     uint8_t tmp[3];
 
-    if (HAL_UART_Receive(dev->huart, tmp, 3, timeout) != HAL_OK) {
+    if (receive_bytes(dev, tmp, 3, timeout) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     if (tmp[0] != 0 || tmp[1] != 0 || tmp[2] != 0xFF) {
@@ -84,7 +108,7 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len,
     }
 
     uint8_t length_arr[2];
-    if (HAL_UART_Receive(dev->huart, length_arr, 2, timeout) != HAL_OK) {
+    if (receive_bytes(dev, length_arr, 2, timeout) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     if (0 != (uint8_t)(length_arr[0] + length_arr[1])) {
@@ -96,14 +120,14 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len,
     }
 
     uint8_t cmd = dev->command + 1;
-    if (HAL_UART_Receive(dev->huart, tmp, 2, timeout) != HAL_OK) {
+    if (receive_bytes(dev, tmp, 2, timeout) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     if (tmp[0] != PN532_PN532TOHOST || tmp[1] != cmd) {
         return PN532_INVALID_FRAME;
     }
 
-    if (HAL_UART_Receive(dev->huart, buf, length_arr[0], timeout) != HAL_OK) {
+    if (receive_bytes(dev, buf, length_arr[0], timeout) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     uint8_t sum = PN532_PN532TOHOST + cmd;
@@ -111,7 +135,7 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len,
         sum += buf[i];
     }
 
-    if (HAL_UART_Receive(dev->huart, tmp, 2, timeout) != HAL_OK) {
+    if (receive_bytes(dev, tmp, 2, timeout) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     if ((uint8_t)(sum + tmp[0]) != 0 || tmp[1] != 0x00) {
@@ -126,7 +150,7 @@ static int8_t pn532_uart_hal_readAckFrame(pn532_uart_hal *dev)
     const uint8_t PN532_ACK[] = {0, 0, 0xFF, 0, 0xFF, 0};
     uint8_t ackBuf[sizeof(PN532_ACK)];
 
-    if (HAL_UART_Receive(dev->huart, ackBuf, sizeof(PN532_ACK), PN532_ACK_WAIT_TIME) != HAL_OK) {
+    if (receive_bytes(dev, ackBuf, sizeof(PN532_ACK), PN532_ACK_WAIT_TIME) != HAL_OK) {
         return PN532_TIMEOUT;
     }
 
