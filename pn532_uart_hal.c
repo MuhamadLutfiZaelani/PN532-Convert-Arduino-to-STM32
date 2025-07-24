@@ -1,8 +1,8 @@
 #include "pn532_uart_hal.h"
 #include "PN532_debug.h"
 #include <string.h>
+#include "stm32f4xx_hal.h" /* adjust for your MCU series */
 
-extern uint32_t HAL_GetTick(void);
 
 static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data, uint16_t len, uint16_t timeout);
 
