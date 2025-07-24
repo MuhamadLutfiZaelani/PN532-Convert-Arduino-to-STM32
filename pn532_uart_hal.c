@@ -38,12 +38,18 @@ static HAL_StatusTypeDef receive_bytes(pn532_uart_hal *dev, uint8_t *data, uint1
     uint32_t start = HAL_GetTick();
 
     while (read < len) {
-        if (HAL_UART_Receive(dev->huart, &data[read], 1, 1) == HAL_OK) {
-            read++;
+        uint32_t now = HAL_GetTick();
+        if (timeout && (now - start >= timeout)) {
+            return HAL_TIMEOUT;
         }
 
-        if (timeout && (HAL_GetTick() - start >= timeout)) {
-            return HAL_TIMEOUT;
+        uint16_t remaining_timeout = timeout ? (timeout - (now - start)) : HAL_MAX_DELAY;
+
+        HAL_StatusTypeDef ret = HAL_UART_Receive(dev->huart, &data[read], len - read, remaining_timeout);
+        read += (len - read) - dev->huart->RxXferCount;
+
+        if (ret != HAL_OK && ret != HAL_TIMEOUT) {
+            return ret;
         }
     }
 
