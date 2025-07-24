@@ -56,3 +56,42 @@ void nfc_poll(void)
 With these steps the driver can be used to communicate with the PN532 module from an STM32 Blackpill or any other board using the HAL.
 
 
+
+## Example: Forward UID via Secondary UART
+
+The PN532 driver can be used to forward detected card UIDs through another UART.
+This is useful when the microcontroller needs to pass NFC data to another host.
+
+```c
+#include "stm32f1xx_hal.h"
+#include "pn532.h"
+#include "pn532_uart_hal.h"
+
+extern UART_HandleTypeDef huart1;  // PN532 connection
+extern UART_HandleTypeDef huart2;  // output UART
+
+static pn532_uart_hal pn532_hal;
+static pn532 nfc;
+
+void nfc_init(void)
+{
+    pn532_uart_hal_init(&pn532_hal, &huart1);
+    pn532_init(&nfc, &pn532_hal.interface);
+    pn532_begin(&nfc);
+    pn532_sam_config(&nfc);
+}
+
+void nfc_loop(void)
+{
+    uint8_t uid[7];
+    uint8_t uid_len;
+    if (pn532_read_passive_target_id(&nfc, PN532_MIFARE_ISO14443A,
+                                     uid, &uid_len, 1000)) {
+        HAL_UART_Transmit(&huart2, uid, uid_len, HAL_MAX_DELAY);
+    }
+}
+```
+
+The same code is available in `examples/forward_uid.c` for inclusion in your
+project.
+
