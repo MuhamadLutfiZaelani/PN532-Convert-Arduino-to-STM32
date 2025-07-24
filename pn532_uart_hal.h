@@ -36,10 +36,8 @@ typedef struct {
 void pn532_uart_hal_init(pn532_uart_hal *dev, UART_HandleTypeDef *huart);
 void pn532_uart_hal_begin(void *ctx);
 void pn532_uart_hal_wakeup(void *ctx);
-int8_t pn532_uart_hal_write_command(void *ctx, const uint8_t *header, uint8_t hlen,
-                                    const uint8_t *body, uint8_t blen);
-int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len,
-                                     uint16_t timeout);
+int8_t pn532_uart_hal_write_command(void *ctx, const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen);
+int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len, uint16_t timeout);
 
 #ifdef __cplusplus
 }
