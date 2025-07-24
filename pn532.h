@@ -38,6 +38,8 @@ uint8_t pn532_read_gpio(pn532 *dev);
 bool pn532_sam_config(pn532 *dev);
 bool pn532_set_passive_activation_retries(pn532 *dev, uint8_t maxRetries);
 bool pn532_set_rf_field(pn532 *dev, uint8_t autoRFCA, uint8_t rFOnOff);
-bool pn532_read_passive_target_id(pn532 *dev, uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout);
+bool pn532_read_passive_target_id(pn532 *dev, uint8_t cardbaudrate,
+                                  uint8_t *uid, uint8_t *uidLength,
+                                  uint8_t uid_maxlen, uint16_t timeout);
 
 #endif /* PN532_C_DRIVER_H */

@@ -124,7 +124,9 @@ bool pn532_set_rf_field(pn532 *dev, uint8_t autoRFCA, uint8_t rFOnOff)
     return (0 < dev->interface->read_response(dev->interface->context, dev->packet_buffer, sizeof(dev->packet_buffer), 0));
 }
 
-bool pn532_read_passive_target_id(pn532 *dev, uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout)
+bool pn532_read_passive_target_id(pn532 *dev, uint8_t cardbaudrate,
+                                  uint8_t *uid, uint8_t *uidLength,
+                                  uint8_t uid_maxlen, uint16_t timeout)
 {
     dev->packet_buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
     dev->packet_buffer[1] = 1;
@@ -139,6 +141,9 @@ bool pn532_read_passive_target_id(pn532 *dev, uint8_t cardbaudrate, uint8_t *uid
         return false;
     }
     *uidLength = dev->packet_buffer[5];
+    if (dev->packet_buffer[5] > uid_maxlen) {
+        return false;
+    }
     for (uint8_t i = 0; i < dev->packet_buffer[5]; i++) {
         uid[i] = dev->packet_buffer[6 + i];
     }
