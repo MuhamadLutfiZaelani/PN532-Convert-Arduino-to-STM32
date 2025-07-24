@@ -19,6 +19,9 @@
 #define PN532_GPIO_P32                      (2)
 #define PN532_GPIO_P34                      (4)
 
+/* Baud rate codes for pn532_read_passive_target_id() */
+#define PN532_MIFARE_ISO14443A              (0x00)
+
 typedef struct pn532 {
     pn532_interface *interface;
     uint8_t packet_buffer[64];
