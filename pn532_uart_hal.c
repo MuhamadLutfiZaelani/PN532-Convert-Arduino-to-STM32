@@ -94,18 +94,32 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len, uint1
 {
     pn532_uart_hal *dev = (pn532_uart_hal *)ctx;
     uint8_t tmp[3];
+    uint32_t start = HAL_GetTick(); /* record start for timeout tracking */
+    uint32_t elapsed;
 
     if (receive_bytes(dev, tmp, 3, timeout) != HAL_OK) {
         return PN532_TIMEOUT;
     }
+    elapsed = HAL_GetTick() - start;
+    if (timeout && elapsed >= timeout) {
+        return PN532_TIMEOUT;
+    }
+    /* remaining time for subsequent reads */
+    uint16_t remaining = (timeout && elapsed < timeout) ? (timeout - elapsed) : 0;
     if (tmp[0] != 0 || tmp[1] != 0 || tmp[2] != 0xFF) {
         return PN532_INVALID_FRAME;
     }
 
     uint8_t length_arr[2];
-    if (receive_bytes(dev, length_arr, 2, timeout) != HAL_OK) {
+    if (receive_bytes(dev, length_arr, 2, remaining) != HAL_OK) {
         return PN532_TIMEOUT;
     }
+    elapsed = HAL_GetTick() - start;
+    if (timeout && elapsed >= timeout) {
+        return PN532_TIMEOUT;
+    }
+    /* update remaining timeout */
+    remaining = (timeout && elapsed < timeout) ? (timeout - elapsed) : 0;
     if (0 != (uint8_t)(length_arr[0] + length_arr[1])) {
         return PN532_INVALID_FRAME;
     }
@@ -115,14 +129,21 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len, uint1
     }
 
     uint8_t cmd = dev->command + 1;
-    if (receive_bytes(dev, tmp, 2, timeout) != HAL_OK) {
+    if (receive_bytes(dev, tmp, 2, remaining) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     if (tmp[0] != PN532_PN532TOHOST || tmp[1] != cmd) {
         return PN532_INVALID_FRAME;
     }
 
-    if (receive_bytes(dev, buf, length_arr[0], timeout) != HAL_OK) {
+    elapsed = HAL_GetTick() - start;
+    if (timeout && elapsed >= timeout) {
+        return PN532_TIMEOUT;
+    }
+    /* update remaining timeout */
+    remaining = (timeout && elapsed < timeout) ? (timeout - elapsed) : 0;
+
+    if (receive_bytes(dev, buf, length_arr[0], remaining) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     uint8_t sum = PN532_PN532TOHOST + cmd;
@@ -130,7 +151,14 @@ int16_t pn532_uart_hal_read_response(void *ctx, uint8_t *buf, uint8_t len, uint1
         sum += buf[i];
     }
 
-    if (receive_bytes(dev, tmp, 2, timeout) != HAL_OK) {
+    elapsed = HAL_GetTick() - start;
+    if (timeout && elapsed >= timeout) {
+        return PN532_TIMEOUT;
+    }
+    /* update remaining timeout */
+    remaining = (timeout && elapsed < timeout) ? (timeout - elapsed) : 0;
+
+    if (receive_bytes(dev, tmp, 2, remaining) != HAL_OK) {
         return PN532_TIMEOUT;
     }
     if ((uint8_t)(sum + tmp[0]) != 0 || tmp[1] != 0x00) {
